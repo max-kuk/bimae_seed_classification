@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as follows:"
+authors:
+  - family-names: Kukushkin
+    given-names: Maksim
+  - family-names: Bogdan
+    given-names: Martin
+  - family-names: Schmid
+    given-names: Thomas
+title: "BiMAE - A Bimodal Masked Autoencoder Architecture for Single-Label Hyperspectral Image Classification"
+year: 2024
+conference:
+  name: "2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)"
+pages: "2987-2996"
+doi: "10.1109/CVPRW63382.2024.00304"
+keywords:
+  - Manifolds
+  - Visualization
+  - Costs
+  - Scalability
+  - Conferences
+  - Self-supervised learning
+  - Pattern recognition
+  - masked autoencoder
+  - hyperspectral imaging
+  - seed purity testing
+  - hyperspectral classification
+  - multimodal masked autoencoder
+  - masked modeling
+license: "https://spdx.org/licenses/CC-BY-4.0.html"
