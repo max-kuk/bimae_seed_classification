@@ -12,6 +12,7 @@ The input data should be in the form of TFRecords. The TFRecords should contain 
 
 <img src="imgs/BiMAE_pretraining.jpg" alt="BiMAE pretraining" style="width:600px;"/>
 To train the model, run the following command:
+
 ```bash
 nohup python mae_trainer.py --model=mae_vit_tiny_patch24 --scr_dir=path/to/tfrecord --batch_size=512 --epochs=300 --patch_size=24 --hs_image_size=24 --hs_num_patches=300 --hs_mask_proportion=0.9 --rgb_image_size=192 --rgb_num_patches=64 --hs_mask_proportion=0.75 > mae_trainer.log &  
 ```
