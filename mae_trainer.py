@@ -62,7 +62,7 @@ def main():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=200,
+        default=300,
         required=False,
         help="number of epochs",
     )

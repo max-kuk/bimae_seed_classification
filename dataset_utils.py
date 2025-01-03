@@ -91,17 +91,10 @@ def parse_export_fn(
     hs_image = tf.io.decode_raw(hs_image, "float32")
     hs_image = tf.reshape(hs_image, parsed_example["hs_size"])
 
-    hs_image = preprocessing.resize_hs_image(  # todo: uncomment
+    hs_image = preprocessing.resize_hs_image( 
         hs_image, target_size=(24, 24), keep_num_bands=300, resize=True
     )
 
-    # hs_image = preprocessing.resize_hs_image(
-    #    hs_image,
-    #    roi_size=(12, 12),
-    #    keep_num_bands=300,
-    #    resize=False,
-    #    central_crop=True,
-    # )
 
     rgb_image = tf.sparse.to_dense(parsed_example["rgb_image"])
     rgb_image = tf.io.decode_png(rgb_image[0], channels=3)

@@ -28,8 +28,7 @@ def prepare_dataset(
     preprocess_fn=None,
     cache: bool = False,
     subset: int = None,
-    select_channels_strategy: str = "every_30th",  # downstream only (select every 30th channel per default)
-    # downstream_every_num_channels: int = 30,  # change to 15
+    select_channels_strategy: str = "step_30",  # downstream only (select every 30th channel per default)
 ):
     if modality not in ["bimodal", "hs", "rgb"]:
         raise ValueError("Invalid 'modality' value. Use 'bimodal', 'hs' or 'rgb'.")
@@ -37,30 +36,30 @@ def prepare_dataset(
     if downstream:
         if select_channels_strategy == "all":
             select_channels = None
-        if select_channels_strategy == "every_60th":
+        if select_channels_strategy == "step_60":
             select_channels = 60
-        if select_channels_strategy == "every_30th":
+        if select_channels_strategy == "step_30":
             select_channels = 30
-        elif select_channels_strategy == "first_10":
+        elif select_channels_strategy == "top_10":
             select_channels = 10
-        elif select_channels_strategy == "first_5":
+        elif select_channels_strategy == "top_5":
             select_channels = 5
-        elif select_channels_strategy == "last_10":
+        elif select_channels_strategy == "bottom_10":
             select_channels = -10
-        elif select_channels_strategy == "last_5":
+        elif select_channels_strategy == "bottom_5":
             select_channels = -5
 
     if downstream and select_channels_strategy not in [
         "all",
-        "every_60th",
-        "every_30th",
-        "first_10",
-        "first_5",
-        "last_10",
-        "last_5",
+        "step_60",
+        "step_30",
+        "top_10",
+        "top_5",
+        "bottom_10",
+        "bottom_5",
     ]:
         raise ValueError(
-            "Invalid 'select_channels_strategy' value. Use 'all', 'every_60th', 'every_30th', 'first_10', 'first_5', 'last_10' or 'last_5'."
+            "Invalid 'select_channels_strategy' value. Use 'all', 'step_60', 'step_30', 'top_10', 'top_5', 'bottom_10' or 'bottom_5'."
         )
 
     if modality == "bimodal":
@@ -74,7 +73,7 @@ def prepare_dataset(
                 deterministic=deterministic,
             )
         else:
-            if select_channels_strategy in ["every_60th", "every_30th"]:
+            if select_channels_strategy in ["step_60", "step_30"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., ::select_channels],
@@ -84,7 +83,7 @@ def prepare_dataset(
                     num_parallel_calls=AUTOTUNE,
                     deterministic=deterministic,
                 )
-            elif select_channels_strategy in ["first_10", "first_5"]:
+            elif select_channels_strategy in ["top_10", "top_5"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., :select_channels],
@@ -94,7 +93,7 @@ def prepare_dataset(
                     num_parallel_calls=AUTOTUNE,
                     deterministic=deterministic,
                 )
-            elif select_channels_strategy in ["last_10", "last_5"]:
+            elif select_channels_strategy in ["bottom_10", "bottom_5"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., select_channels:],
@@ -123,7 +122,7 @@ def prepare_dataset(
                 deterministic=deterministic,
             )
         else:
-            if select_channels_strategy in ["every_60th", "every_30th"]:
+            if select_channels_strategy in ["step_60", "step_30"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., ::select_channels],
@@ -133,7 +132,7 @@ def prepare_dataset(
                     deterministic=deterministic,
                 )
 
-            elif select_channels_strategy in ["first_10", "first_5"]:
+            elif select_channels_strategy in ["top_10", "top_5"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., :select_channels],
@@ -143,7 +142,7 @@ def prepare_dataset(
                     deterministic=deterministic,
                 )
 
-            elif select_channels_strategy in ["last_10", "last_5"]:
+            elif select_channels_strategy in ["bottom_10", "bottom_5"]:
                 dataset = dataset.map(
                     lambda x: (
                         preprocess_fn(x["hs_image"])[..., select_channels:],
@@ -432,248 +431,3 @@ def get_data(
     )
 
     return train_ds, valid_ds, test_ds
-
-
-def get_real_data(
-    src_dir: str,
-    nb_samples: int = 44,
-    shuffle: bool = False,
-    deterministic: bool = False,
-    seed: int = 42,
-) -> tuple:
-    """
-    Loads real data from the given directory.
-
-    Args:
-        src_dir (str): path to the directory containing the data
-        nb_samples (int, optional): number of samples to load. Defaults to 80.
-        shuffle (bool, optional): whether to shuffle the data. Defaults to False.
-        deterministic (bool, optional): whether to use deterministic operations. Defaults to False.
-        seed (int, optional): seed for random operations. Defaults to 42.
-
-    Returns:
-        tuple: file_id, hs_image, rgb_image, label_id
-    """
-
-    dataset = (
-        tf.data.Dataset.list_files(
-            os.path.join(src_dir, "*", "*"), shuffle=shuffle, seed=seed
-        )
-        .map(
-            lambda x: tf.py_function(
-                ds_utils.read_raw_files,
-                [x],
-                [tf.string, tf.float32, tf.uint8, tf.uint8],
-            ),
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-            deterministic=deterministic,
-        )
-        .map(
-            ds_utils.preprocess_fn,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-            deterministic=deterministic,
-        )
-        .batch(
-            nb_samples,
-            drop_remainder=True,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-            deterministic=deterministic,
-        )
-    )
-
-    return next(iter(dataset.as_numpy_iterator()))
-
-
-def get_raw_data(
-    src_dir: str,
-    batch_size: int,
-    modality: str = "bimodal",
-    preprocess_hs_fn=None,
-    select_channels_strategy: str = "every_30th",
-):
-
-    ds = get_dataset_from_raw_data(
-        src_dir,
-        batch_size=batch_size,
-    )
-    # ds = prepare_dataset(
-    #    ds,
-    #    "train",
-    #    modality=modality,
-    #    preprocess_fn=preprocess_hs_fn,
-    #    cache=False,
-    #    select_channels_strategy=select_channels_strategy,
-    # )
-
-    return next(iter(ds.as_numpy_iterator()))
-
-
-def get_dataset_from_raw_data(
-    src_dir: str,
-    batch_size: int = 40,
-    deterministic: bool = False,
-    shuffle: bool = False,
-    seed: int = 42,
-) -> tf.data.Dataset:
-    """
-    Function to create a tf.data.Dataset from raw data.
-
-    Args:
-        src_dir (str): Path to the dataset directory.
-        batch_size (int, optional): Batch size. Defaults to 32.
-        hs_only (bool, optional): Whether to include only hyperspectral data. Defaults to False.
-        rgb_only (bool, optional): Whether to include only RGB data. Defaults to False.
-        normal_label (str, optional): Label to filter from dataset. Defaults to "winterraps".
-        deterministic (bool, optional): Whether to use deterministic operations. Defaults to False.
-        shuffle (bool, optional): Whether to shuffle the data. Defaults to False.
-        seed (int, optional): Seed for the random number generator. Defaults to 42.
-
-    Returns:
-        tf.data.Dataset: A tf.data.Dataset containing the samples
-    """
-
-    dataset = (
-        tf.data.Dataset.list_files(
-            os.path.join(src_dir, "*", "*"), shuffle=shuffle, seed=seed
-        ).map(
-            lambda x: tf.py_function(
-                ds_utils.read_raw_files,
-                [x],
-                [tf.string, tf.float32, tf.uint8, tf.string],
-            ),
-            num_parallel_calls=AUTOTUNE,
-            deterministic=deterministic,
-        )
-        # .map(
-        #    ds_utils.convert_to_dict,
-        #    num_parallel_calls=AUTOTUNE,
-        #    deterministic=deterministic,
-        # )
-        # .batch(
-        #    batch_size,
-        #    drop_remainder=True,
-        # )
-        # .map(
-        #    ds_utils.add_label_id,
-        #    num_parallel_calls=AUTOTUNE,
-        #    deterministic=deterministic,
-        # )
-    )
-
-    return dataset
-
-
-def prepare_dataset_inference(
-    dataset,
-    deterministic: bool = False,
-    modality: str = "bimodal",
-    preprocess_fn=None,
-    select_channels_strategy: str = "every_30th",  # downstream only (select every 30th channel per default)
-):
-    if modality not in ["bimodal", "hs", "rgb"]:
-        raise ValueError("Invalid 'modality' value. Use 'bimodal', 'hs' or 'rgb'.")
-
-    if select_channels_strategy == "all":
-        select_channels = None
-    if select_channels_strategy == "every_60th":
-        select_channels = 60
-    if select_channels_strategy == "every_30th":
-        select_channels = 30
-    elif select_channels_strategy == "first_10":
-        select_channels = 10
-    elif select_channels_strategy == "first_5":
-        select_channels = 5
-    elif select_channels_strategy == "last_10":
-        select_channels = -10
-    elif select_channels_strategy == "last_5":
-        select_channels = -5
-    else:
-        raise ValueError(
-            "Invalid 'select_channels_strategy' value. Use 'all', 'every_60th', 'every_30th', 'first_10', 'first_5', 'last_10' or 'last_5'."
-        )
-
-    if modality == "bimodal":
-        if select_channels_strategy in ["every_60th", "every_30th"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., ::select_channels],
-                    x["rgb_image"],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-        elif select_channels_strategy in ["first_10", "first_5"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., :select_channels],
-                    x["rgb_image"],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-        elif select_channels_strategy in ["last_10", "last_5"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., select_channels:],
-                    x["rgb_image"],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-        elif select_channels_strategy == "all":
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"]),
-                    x["rgb_image"],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-
-    elif modality == "hs":
-        if select_channels_strategy in ["every_60th", "every_30th"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., ::select_channels],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-
-        elif select_channels_strategy in ["first_10", "first_5"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., :select_channels],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-
-        elif select_channels_strategy in ["last_10", "last_5"]:
-            dataset = dataset.map(
-                lambda x: (
-                    preprocess_fn(x["hs_image"])[..., select_channels:],
-                    x["class_id"],
-                ),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-        elif select_channels_strategy == "all":
-            dataset = dataset.map(
-                lambda x: (preprocess_fn(x["hs_image"]), x["class_id"]),
-                num_parallel_calls=AUTOTUNE,
-                deterministic=deterministic,
-            )
-
-    elif modality == "rgb":
-        dataset = dataset.map(
-            lambda x: (x["rgb_image"], x["class_id"]),
-            num_parallel_calls=AUTOTUNE,
-            deterministic=deterministic,
-        )

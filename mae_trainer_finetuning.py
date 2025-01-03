@@ -205,7 +205,7 @@ def main():
     parser.add_argument(
         "--select_channels_strategy",
         type=str,
-        default="every_60th",  # Use  'all', 'every_60th', 'every_30th', 'first_10', 'first_5', 'last_10' or 'last_5'
+        default="step_60",  # Use  'all', 'step_60', 'step_30', 'top_10', 'top_5', 'bottom_10' or 'bottom_5'
         required=False,
         help="select channels strategy",
     )
@@ -311,7 +311,7 @@ def main():
         modality=args.target_modalities,
         downstream=True,
         preprocess_hs_fn=preprocess_hs_fn,
-        select_channels_strategy=args.select_channels_strategy,  # Use 'every_60th', 'every_30th', 'first_10', 'first_5', 'last_10' or 'last_5'
+        select_channels_strategy=args.select_channels_strategy,  # Use 'step_60', 'step_30', 'top_10', 'top_5', 'bottom_10' or 'bottom_5'
     )
 
     scheduled_lrs = get_lr_schedule(
@@ -327,44 +327,44 @@ def main():
                     hs_indices = ops.arange(0, args.hs_num_patches, step=1)
                 else:
                     raise ValueError("hs_num_channels must be 300 for all strategy")
-            case "every_60th":
+            case "step_60":
                 if args.hs_num_channels == 5:
                     hs_indices = ops.arange(0, args.hs_num_patches, step=60)
                 else:
                     raise ValueError(
-                        "hs_num_channels must be 5 for every_60th strategy"
+                        "hs_num_channels must be 5 for step_60 strategy"
                     )
-            case "every_30th":
+            case "step_30":
                 if args.hs_num_channels == 10:
                     hs_indices = ops.arange(0, args.hs_num_patches, step=30)
                 else:
                     raise ValueError(
-                        "hs_num_channels must be 10 for every_30th strategy"
+                        "hs_num_channels must be 10 for step_30 strategy"
                     )
-            case "first_10":
+            case "top_10":
                 if args.hs_num_channels == 10:
                     hs_indices = ops.arange(10)
                 else:
-                    raise ValueError("hs_num_channels must be 10 for first_10 strategy")
-            case "first_5":
+                    raise ValueError("hs_num_channels must be 10 for top_10 strategy")
+            case "top_5":
                 if args.hs_num_channels == 5:
                     hs_indices = ops.arange(5)
                 else:
-                    raise ValueError("hs_num_channels must be 5 for first_5 strategy")
-            case "last_10":
+                    raise ValueError("hs_num_channels must be 5 for top_5 strategy")
+            case "bottom_10":
                 if args.hs_num_channels == 10:
                     hs_indices = ops.arange(
                         args.hs_num_patches - 10, args.hs_num_patches
                     )
                 else:
-                    raise ValueError("hs_num_channels must be 10 for last_10 strategy")
-            case "last_5":
+                    raise ValueError("hs_num_channels must be 10 for bottom_10 strategy")
+            case "bottom_5":
                 if args.hs_num_channels == 5:
                     hs_indices = ops.arange(
                         args.hs_num_patches - 5, args.hs_num_patches
                     )
                 else:
-                    raise ValueError("hs_num_channels must be 5 for last_5 strategy")
+                    raise ValueError("hs_num_channels must be 5 for bottom_5 strategy")
             case _:
                 raise ValueError("Invalid select channels strategy")
     else:

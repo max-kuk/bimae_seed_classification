@@ -21,9 +21,9 @@ nohup python mae_trainer.py --model=mae_vit_tiny_patch24 --scr_dir=path/to/tfrec
 
 <img src="imgs/BiMAE_finetuning.jpg" alt="BiMAE finetuning" style="width:300px;"/>
 
-To fine-tune the model, run the following command:
+To finetune the model, run the following command:
 ```bash
-nohup python mae_trainer_finetuning.py --model=mae_vit_tiny_patch24 --scr_dir=path/to/tfrecord --batch_size=512 --epochs=50 --patch_size=24 --hs_image_size=24 --hs_num_patches=300 --hs_mask_proportion=0.9 --rgb_image_size=192 --rgb_num_patches=64 --hs_mask_proportion=0.75  --num_classes=19 --from_scratch=True --target_modalities=bimodal > mae_trainer_finetuning.log &  
+nohup python mae_trainer_finetuning.py --model=mae_vit_tiny_patch24 --select_channels_strategy=step_60 --scr_dir=path/to/tfrecord --batch_size=512 --epochs=50 --patch_size=24 --hs_image_size=24 --hs_num_patches=300 --hs_mask_proportion=0.9 --rgb_image_size=192 --rgb_num_patches=64 --hs_mask_proportion=0.75  --num_classes=19 --from_scratch=True --target_modalities=bimodal > mae_trainer_finetuning.log &  
 ```
 
 Following models are available:
@@ -31,6 +31,13 @@ Following models are available:
 - mae_vit_small_patch24
 - mae_vit_base_patch24
 
+Following strategies for selecting channels are available:
+- *step_60*  - select every 60th channel
+- *step_30* - select every 30th channel
+- *top_10* - select first 10 channels (1,10)
+- *top_5* - select first 5 channels (1,5)
+- *bottom_10* - select last 10 channels (290,300)
+- *bottom_5* - select last 5 channels (295,300)
 ## Citation
 If you find this code useful in your research, please consider citing:
 ```

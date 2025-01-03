@@ -12,59 +12,6 @@ import tensorflow as tf
 from keras import ops
 
 
-def preprocess_fn(
-    sample: dict,
-    hs_only: bool,
-    rgb_only: bool,
-    reduce_mean=False,
-) -> dict:
-    """
-    Preprocess the input sample.
-
-    Args:
-        sample (dict): Input sample containing hyperspectral and RGB images.
-        hs_only (bool): Whether to preprocess only the hyperspectral image.
-        rgb_only (bool): Whether to preprocess only the RGB image.
-        augment (bool, optional): Whether to augment the RGB image. Defaults to False.
-        crop_size (int, optional): Size for cropping the image.
-
-    Returns:
-        dict: Preprocessed sample.
-    """
-    file_ids = sample["id"]
-    labels = sample["label"]
-    hs_images = sample["hs_image"]
-    rgb_images = sample["rgb_image"]
-
-    if hs_only:
-        if reduce_mean:
-            hs_images = ops.mean(hs_images, axis=[1, 2])
-            hs_images = normalize_spectra(hs_images)
-        else:
-            hs_images = normalize_spectra(hs_images)
-
-        # hs_images = resize_hs_image(hs_images, keep_num_bands=100, resize=True, target_size=(24, 24))
-
-        return {"id": file_ids, "hs_image": hs_images, "label": labels}
-
-    if rgb_only:
-        return {"id": file_ids, "rgb_image": rgb_images, "label": labels}
-
-    # reduce_mean = True
-    if reduce_mean:
-        hs_images = ops.mean(hs_images, axis=[1, 2])
-
-    # remove resize
-    # hs_images = resize_hs_image(hs_images, keep_num_bands=100)
-    hs_images = normalize_spectra(hs_images)
-
-    return {
-        "id": file_ids,
-        "hs_image": hs_images,
-        "rgb_image": rgb_images,
-        "label": labels,
-    }
-
 
 def resize_rgb_image(image: tf.Tensor, target_size: tuple = (192, 192)) -> tf.Tensor:
     """
@@ -181,7 +128,7 @@ def resize_hs_image(
             center[0] - roi_size[0] // 2 : center[0] + roi_size[0] // 2,
             center[1] - roi_size[1] // 2 : center[1] + roi_size[1] // 2,
         ]
-              
+
         image = ops.mean(image, axis=(0, 1))
 
     if keep_num_bands == 50:
