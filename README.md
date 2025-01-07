@@ -48,7 +48,7 @@ Following strategies for selecting channels are available:
 - *bottom_5* - select last 5 channels (295,300)
 
 ## License
-This project is under the CC-BY-NC 4.0 license. See LICENSE for details.
+This project is under the CC-BY-NC 4.0 license. See [LICENSE](https://github.com/max-kuk/bimae_seed_classification/blob/main/LICENSE.md)  for details.
 
 ## Citation
 If you find this code useful in your research, please consider citing:
