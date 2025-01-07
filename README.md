@@ -1,4 +1,5 @@
 # BiMAE - A Bimodal Masked Autoencoder Architecture for Single-Label Hyperspectral Image Classification
+[Maksim Kukushkin](https://github.com/max-kuk/bimae_seed_classification), Martin Bogdan, Thomas Schmid
 
 ## Input Data
 The input data should be in the form of TFRecords. The TFRecords should contain the following features:
