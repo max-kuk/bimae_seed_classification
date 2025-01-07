@@ -1,4 +1,4 @@
-# Official TensorFlow implementation of the paper "BiMAE - A Bimodal Masked Autoencoder Architecture for Single-Label Hyperspectral Image Classification" (CVPRW 2024)
+# BiMAE - A Bimodal Masked Autoencoder Architecture for Single-Label Hyperspectral Image Classification
 
 ## Input Data
 The input data should be in the form of TFRecords. The TFRecords should contain the following features:
